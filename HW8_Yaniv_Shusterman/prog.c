@@ -12,16 +12,16 @@
 
 #define FOLDER 1
 #define VIRUS_SIGNATURE 2
-#define MAX_STR_SIZE 1024
+#define MAX_STR 100
 #define SEPERATOR "/"
 #define REGULAR_READ 1
 #define FIRST_TWENTY 2
 #define LAST_TWENTY 3
 #define CLEAN 0
-#define SIZE_STRING 20
+#define SIZE_STRING 100
 
-typedef struct fileDetails{
-	char fileName[MAX_STR_SIZE];
+typedef struct fileDetails {
+	char fileName[MAX_STR];
 	int status;
 } fileDetails;
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 	FILE* virusFileSignature = fopen(argv[VIRUS_SIGNATURE], "rb");
 	fileDetails* files = NULL;
 	char* filePath = NULL;
-	int infectedOrNot = 0, sizeOfCurrentFile = 0 , numFiles = 1 , fileNum = 0 , twenty = 0, lastTwenty = 0;
+	int infectedOrNot = 0, sizeOfCurrentFile = 0, numFiles = 1, fileNum = 0, twenty = 0, lastTwenty = 0;
 	char choice = ' ';
 	char choiceString[SIZE_STRING] = { 0 };
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 	changeBackSlashToSlash(argv[VIRUS_SIGNATURE]);
 	printf("%s\n", argv[FOLDER]);
 	dirFilesToCheck = opendir(argv[FOLDER]);
-	if (dirFilesToCheck ==NULL)
+	if (dirFilesToCheck == NULL)
 	{
 		printf("Erorr opening directory\n");
 		return 1;
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
 	printf("Welcome to my virus Scan!\n\n");
 	printf("Folder to scan: %s\n", argv[FOLDER]);
-	printf("Virus signature: %s\n\n",argv[VIRUS_SIGNATURE]);
+	printf("Virus signature: %s\n\n", argv[VIRUS_SIGNATURE]);
 	printf("Press 0 for normal scan or ant other key for a quick scan: ");
 	scanf("%c", &choice);
 	getchar();
@@ -67,28 +67,28 @@ int main(int argc, char** argv)
 
 	files = (fileDetails*)malloc(sizeof(fileDetails));// malloctaing memory for array of structurs.
 
-	while((dir = readdir(dirFilesToCheck)) != NULL)// scrolling through the files in the directory.
+	while ((dir = readdir(dirFilesToCheck)) != NULL)// scrolling through the files in the directory.
 	{
-		if(strcmp(dir->d_name,".") && strcmp(dir->d_name, ".."))// not inckuding the .. and . directorys because not importent.
+		if (strcmp(dir->d_name, ".") && strcmp(dir->d_name, ".."))// not inckuding the .. and . directorys because not importent.
 		{
 			filePath = createFilePath(dir->d_name, argv[FOLDER]);// turning the file name to the right format.
 			currentFile = fopen(filePath, "rb");
-			if(currentFile == NULL)
+			if (currentFile == NULL)
 			{
 				printf("File didn't work or path not right\n");
 				return 1;
 			}
-			if(choice == '0')// if normal scan was chosen.
+			if (choice == '0')// if normal scan was chosen.
 			{
 				strcpy(choiceString, "Normal scan");
 				sizeOfCurrentFile = calculateSizeOfFile(currentFile);
 				infectedOrNot = chekIfInfected(currentFile, virusFileSignature, 0, sizeOfCurrentFile);// checking if the file is infected.
 				files = (fileDetails*)realloc(files, sizeof(fileDetails) * numFiles);// realocating memory to add a structure.
-				if(files == NULL)
+				if (files == NULL)
 				{
 					printf("realloc doesn't worked \n");
 					return 1;
-				}	
+				}
 				strcpy(files[fileNum].fileName, dir->d_name);// adding the file name to the struct.
 				files[fileNum].status = infectedOrNot;
 				numFiles++;// adding one more file to the amount of files
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 				sizeOfCurrentFile = calculateSizeOfFile(currentFile);
 				twenty = sizeOfCurrentFile / 5;//getting the size of 20% from the file
 				infectedOrNot = chekIfInfected(currentFile, virusFileSignature, 0, twenty);// checking if the file is infected in is first 20%.
-				if(infectedOrNot != CLEAN)
+				if (infectedOrNot != CLEAN)
 				{
 					files[fileNum].status = FIRST_TWENTY;
 				}
@@ -148,6 +148,10 @@ int main(int argc, char** argv)
 
 	free(files);
 	fclose(virusFileSignature);
+	if (strcmp(choiceString, "Normal scan"))
+	{
+		getchar();
+	}
 	getchar();
 	return 0;
 }
@@ -173,17 +177,17 @@ int chekIfInfected(FILE* fileToCheck, FILE* signatureFile, int startByte, int en
 		return 1;
 	}
 	fread(dataOfVirusSignature, sizeof(char), sizeOfVirusFile, signatureFile);// reading the whole signatue.
-	for (int i = startByte; i + sizeOfVirusFile < endByte; i++)// going through the file im checking.
+	for (int i = startByte; i + sizeOfVirusFile <= endByte; i++)// going through the file im checking.
 	{
 		fseek(fileToCheck, i, SEEK_SET);// starting the file from the right byte.
 		char* possibleVirus = (char*)malloc(sizeOfVirusFile * sizeof(char));// allocating enough memory to store the current set of bytes im going to read.
-		if(possibleVirus == NULL)
+		if (possibleVirus == NULL)
 		{
 			printf("malloc failed!\n");
 			return 1;
 		}
 		fread(possibleVirus, sizeof(char), sizeOfVirusFile, fileToCheck);// reading bytes with the size of the file.
-		if(strcmp(possibleVirus, dataOfVirusSignature) == 0)
+		if (strcmp(possibleVirus, dataOfVirusSignature) == 0)
 		{
 			free(dataOfVirusSignature);
 			free(possibleVirus);
@@ -210,7 +214,7 @@ void changeBackSlashToSlash(char* path)
 {
 	for (int i = 0; i < strlen(path); i++)
 	{
-		if(path[i] == '\\')
+		if (path[i] == '\\')
 		{
 			path[i] = '/';
 		}
@@ -223,22 +227,21 @@ This function taked the path of the file and it's name and connect's them togeth
 input:
 	nameFile - string with the file name.
 	dirPath - string with the directory full path.
-output: 
+output:
 	path - the connected path.
 */
 char* createFilePath(char* nameFile, char* dirPath)
 {
 	char* path = (char*)malloc(strlen(nameFile) * sizeof(char) + strlen(dirPath) * sizeof(char) + 3); // allocating enough space for the full path.
-	if(path == NULL)
+	if (path == NULL)
 	{
 		printf("erorr mallocating memoy\n");
 		return 1;
 	}
-	strncpy(path, dirPath, strlen(dirPath) + 1);
-	strncat(path, SEPERATOR, 2);// putting the path together with /.
-	strncat(path, nameFile, strlen(nameFile));
+	strcpy(path, dirPath);
+	strcat(path, SEPERATOR);// putting the path together with /.
+	strcat(path, nameFile);
 	return path;
-
 }
 
 
@@ -299,19 +302,19 @@ void printFileInFormat(fileDetails* files, int numFiles, char* pathDir)
 	for (int i = 0; i < numFiles; i++)
 	{
 		path = createFilePath((files[i].fileName), pathDir);
-		if(files[i].status == CLEAN)
+		if (files[i].status == CLEAN)
 		{
 			printf("%s - clean\n", path);
 		}
-		else if(files[i].status == REGULAR_READ)
+		else if (files[i].status == REGULAR_READ)
 		{
 			printf("%s - infected!\n", path);
 		}
-		else if(files[i].status == FIRST_TWENTY)
+		else if (files[i].status == FIRST_TWENTY)
 		{
 			printf("%s - infected! (first 20%%)\n", path);
 		}
-		else if(files[i].status == LAST_TWENTY)
+		else if (files[i].status == LAST_TWENTY)
 		{
 			printf("%s - infected! (last 20%%)\n", path);
 		}
@@ -342,7 +345,7 @@ void createLogFile(fileDetails* files, int numFiles, char* pathDir, char* virusS
 		printf("problam opening file!");
 		return 1;
 	}
-	fprintf(logFile, "Anti-virus began! Welcome!\n\nFolder to scan: \n%s\nVirus signature: \n%s\n\nScanning option: %s\n\nresults: \n", pathDir, virusSignature, scanningOption);
+	fprintf(logFile, "Anti-virus began! Welcome!\n\nFolder to scan: \n%s\nVirus signature: \n%s\n\nScanning option: \n%s\n\nresults: \n", pathDir, virusSignature, scanningOption);
 	for (int i = 0; i < numFiles; i++)
 	{
 		path = createFilePath((files[i].fileName), pathDir);
@@ -364,6 +367,7 @@ void createLogFile(fileDetails* files, int numFiles, char* pathDir, char* virusS
 		}
 		free(path);
 	}
-	printf("See log path for results: %s\n", pathDir);
+	printf("See log path for results: %s\n", pathLog);
+	free(pathLog);
 	fclose(logFile);
 }
