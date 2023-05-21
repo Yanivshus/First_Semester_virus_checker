@@ -148,6 +148,7 @@ int main(int argc, char** argv)
 
 	free(files);
 	fclose(virusFileSignature);
+	
 	if (strcmp(choiceString, "Normal scan"))
 	{
 		getchar();
@@ -236,7 +237,6 @@ char* createFilePath(char* nameFile, char* dirPath)
 	if (path == NULL)
 	{
 		printf("erorr mallocating memoy\n");
-		return 1;
 	}
 	strcpy(path, dirPath);
 	strcat(path, SEPERATOR);// putting the path together with /.
@@ -343,7 +343,6 @@ void createLogFile(fileDetails* files, int numFiles, char* pathDir, char* virusS
 	if (logFile == NULL)
 	{
 		printf("problam opening file!");
-		return 1;
 	}
 	fprintf(logFile, "Anti-virus began! Welcome!\n\nFolder to scan: \n%s\nVirus signature: \n%s\n\nScanning option: \n%s\n\nresults: \n", pathDir, virusSignature, scanningOption);
 	for (int i = 0; i < numFiles; i++)
